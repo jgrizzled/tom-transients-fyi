@@ -1,0 +1,67 @@
+{
+ "survey": "tns",
+ "object_id": "2026pub",
+ "detections": [
+  {
+   "mjd": 61212.18294,
+   "band": "V",
+   "flux": 118031.98,
+   "flux_err": null,
+   "mag": 18.72,
+   "mag_err": null,
+   "origin": "tns",
+   "filter": "V-crts-CRTS",
+   "mag_system": "Vega",
+   "approx": false,
+   "lim_mag": null,
+   "instrument": "Other",
+   "telescope": "Other"
+  },
+  {
+   "mjd": 61213.03383,
+   "band": "o",
+   "flux": 744045.88,
+   "flux_err": 26041.08,
+   "mag": 16.721,
+   "mag_err": 0.038,
+   "origin": "tns",
+   "filter": "orange-ATLAS",
+   "mag_system": "AB",
+   "approx": false,
+   "lim_mag": null,
+   "instrument": "ATLAS-04",
+   "telescope": "ATLAS-CHL"
+  },
+  {
+   "mjd": 61257.16688,
+   "band": "r",
+   "flux": 1455592.88,
+   "flux_err": 40117.23,
+   "mag": 15.992,
+   "mag_err": 0.03,
+   "origin": "tns",
+   "filter": "r-ZTF",
+   "mag_system": "AB",
+   "approx": false,
+   "lim_mag": null,
+   "instrument": "ZTF-Cam",
+   "telescope": "P48"
+  },
+  {
+   "mjd": 61260.16226,
+   "band": "r",
+   "flux": 1481152.88,
+   "flux_err": 52379.12,
+   "mag": 15.974,
+   "mag_err": 0.038,
+   "origin": "tns",
+   "filter": "r-ZTF",
+   "mag_system": "AB",
+   "approx": false,
+   "lim_mag": null,
+   "instrument": "ZTF-Cam",
+   "telescope": "P48"
+  }
+ ],
+ "limits": []
+}

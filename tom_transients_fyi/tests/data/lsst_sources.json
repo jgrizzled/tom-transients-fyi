@@ -1,0 +1,66 @@
+[
+ {
+  "r:band": "z",
+  "r:diaSourceId": 170538717066297369,
+  "r:midpointMjdTai": 61205.9889914105,
+  "r:psfFlux": 12668.1045,
+  "r:psfFluxErr": 1981.1094,
+  "r:visit": 2026061400488
+ },
+ {
+  "r:band": "g",
+  "r:diaSourceId": 170534264097996851,
+  "r:midpointMjdTai": 61204.9812346433,
+  "r:psfFlux": 7051.382,
+  "r:psfFluxErr": 243.6545,
+  "r:visit": 2026061300079
+ },
+ {
+  "r:band": "u",
+  "r:diaSourceId": 170534263985274887,
+  "r:midpointMjdTai": 61204.9791400725,
+  "r:psfFlux": 4865.7773,
+  "r:psfFluxErr": 444.0049,
+  "r:visit": 2026061300078
+ },
+ {
+  "r:band": "u",
+  "r:diaSourceId": 170534263851057164,
+  "r:midpointMjdTai": 61204.978552853,
+  "r:psfFlux": 5830.62,
+  "r:psfFluxErr": 433.98663,
+  "r:visit": 2026061300077
+ },
+ {
+  "r:band": "u",
+  "r:diaSourceId": 170534263720509460,
+  "r:midpointMjdTai": 61204.977906028,
+  "r:psfFlux": 6534.1865,
+  "r:psfFluxErr": 486.78888,
+  "r:visit": 2026061300076
+ },
+ {
+  "r:band": "u",
+  "r:diaSourceId": 170534263584194586,
+  "r:midpointMjdTai": 61204.9772487942,
+  "r:psfFlux": 6110.1074,
+  "r:psfFluxErr": 488.2004,
+  "r:visit": 2026061300075
+ },
+ {
+  "r:band": "u",
+  "r:diaSourceId": 170534263448403978,
+  "r:midpointMjdTai": 61204.976622236,
+  "r:psfFlux": 6063.9214,
+  "r:psfFluxErr": 493.4902,
+  "r:visit": 2026061300074
+ },
+ {
+  "r:band": "u",
+  "r:diaSourceId": 170534263315759115,
+  "r:midpointMjdTai": 61204.9759535545,
+  "r:psfFlux": 5693.743,
+  "r:psfFluxErr": 564.0938,
+  "r:visit": 2026061300073
+ }
+]
