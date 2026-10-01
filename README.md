@@ -37,7 +37,7 @@ another copy of the site:
 
 ```python
 DATA_SERVICES = {
-    'transients.fyi': {'base_url': 'https://transients.fyi'},
+    "transients.fyi": {"base_url": "https://transients.fyi"},
 }
 ```
 
@@ -50,10 +50,23 @@ Please credit transients.fyi and the providers of the data you use, as
 
 ## Development
 
-    uv venv -p 3.12 .venv && uv pip install -p .venv "tomtoolkit>=3,<4" requests factory_boy flake8
-    PYTHONPATH=. .venv/bin/python tom_transients_fyi/tests/run_tests.py            # recorded responses
-    PYTHONPATH=. .venv/bin/python tom_transients_fyi/tests/run_tests.py --canary   # the live services
-    .venv/bin/flake8 tom_* --exclude=*/migrations/* --max-line-length=120
+With [uv](https://docs.astral.sh/uv/):
+
+    uv sync                                                           # .venv with the locked versions
+    uv run python tom_transients_fyi/tests/run_tests.py               # tests on recorded responses
+    uv run python tom_transients_fyi/tests/run_tests.py --canary      # against the live services
+    uv run python tom_transients_fyi/tests/check_migrations.py
+    uv run ruff check . && uv run ruff format --check .
 
 The tests run on responses recorded from transients.fyi and Fink on 2026-09-30
-(`tom_transients_fyi/tests/data`).
+(`tom_transients_fyi/tests/data`). CI (`.github/workflows/ci.yml`) runs the same on Python
+3.10–3.13, Linux and macOS; the canary runs daily.
+
+## Releasing
+
+The version comes from the git tag (hatch-vcs). Tag and push:
+
+    git tag v0.1.0 && git push origin v0.1.0
+
+`.github/workflows/release.yml` runs CI, builds with `uv build`, publishes to PyPI by trusted
+publishing (no token) and makes a GitHub release with the files.

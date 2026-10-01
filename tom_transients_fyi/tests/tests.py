@@ -9,7 +9,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 from django.test import TestCase
-
 from tom_dataproducts.models import PhotometryReducedDatum
 from tom_dataservices.dataservices import QueryServiceError, get_data_service_classes
 from tom_targets.models import Target

@@ -1,9 +1,14 @@
 version: 2
 
 updates:
-- package-ecosystem: pip
-  directory: "/"
-  schedule:
-    interval: weekly
-    time: "13:00"
-  open-pull-requests-limit: 10
+  - package-ecosystem: uv
+    directory: "/"
+    schedule:
+      interval: weekly
+    # Matches the 7-day cooldown the lock was made under (uv's exclude-newer-span).
+    cooldown:
+      default-days: 7
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

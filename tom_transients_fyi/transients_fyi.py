@@ -20,7 +20,6 @@ from urllib.parse import parse_qsl, urlsplit
 import requests
 from django import forms
 from django.db import IntegrityError
-
 from tom_dataproducts.models import PhotometryReducedDatum
 from tom_dataservices.dataservices import DataService, QueryServiceError
 from tom_dataservices.forms import BaseQueryForm

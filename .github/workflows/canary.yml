@@ -1,0 +1,16 @@
+name: Canary
+
+# Against the live transients.fyi and Fink: catches a change in their APIs.
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv sync --locked
+      - run: uv run python tom_transients_fyi/tests/run_tests.py --canary
