@@ -15,5 +15,11 @@ class TestLiveServices(TestCase):
         results = ds.query_targets(query)
         self.assertTrue(results)
         self.assertTrue(all(r["tfyi_id"].startswith("ztf:") for r in results))
+        # Not necessarily a detection: an object long faded below its reference (SN 2018evc on
+        # 2026-10-01) has only negative differences, which are left out, and upper limits.
         points = ds.query_photometry({"tfyi_id": results[0]["tfyi_id"]})
-        self.assertTrue(any(p["limit"] is None for p in points))
+        self.assertTrue(points)
+        for p in points:
+            self.assertTrue((p["brightness"] is None) != (p["limit"] is None), p)
+            self.assertEqual((p["telescope"], p["instrument"]), ("P48", "ZTF"))
+            self.assertTrue(p["bandpass"].startswith("ZTF-"), p)
