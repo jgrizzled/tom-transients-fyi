@@ -9,12 +9,15 @@ their light curves, non-detections included.
   (window, source, TNS type, discovered within, brightness, a declination band, AAVSO campaigns).
   Each object becomes a SIDEREAL target named by its TNS name (else its designation or id), with
   its other names as aliases and its class, redshift, discovery night and link as extras.
-- **Photometry.** Reported objects' detections and 5σ limits from transients.fyi (TNS, ATLAS and
-  CBAT reports; magnitudes AB, Vega ones converted). ZTF and Rubin objects' alerts from the
-  [Fink](https://fink-broker.org) broker: ZTF's upper limits, and Rubin's forced photometry on
-  visits without a detection as 5σ limits (Rubin's times are TAI, converted to UTC).
+- **Photometry.** Reported objects' detections and 5σ limits from transients.fyi (TNS, CBAT,
+  ASAS-SN, ATLAS and AAVSO reports; magnitudes AB, Vega ones converted). ZTF and Rubin objects'
+  alerts from the [Fink](https://fink-broker.org) broker: ZTF's upper limits, and Rubin's forced
+  photometry on visits without a detection as 5σ limits (Rubin's times are TAI, converted to
+  UTC); with the reported points of the designations they carry (an object's TNS name: TNS's,
+  ATLAS's and AAVSO's points, the designation in the source name).
 - **Update Reduced Data** on a target page fetches its photometry again (from its `tfyi_id`
-  extra).
+  extra). A report that a ZTF or Rubin object takes over follows it: transients.fyi redirects
+  the report's id to that object, and the target's `tfyi_id` moves there.
 
 Requires TOM Toolkit 3 (`tom_dataservices`). Tested with tomtoolkit 3.0.1.
 

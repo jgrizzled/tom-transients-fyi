@@ -6,8 +6,11 @@ cover a view without a URL. Each row becomes a SIDEREAL target named by its TNS 
 designation or id), with its other names as aliases and ``tfyi_id`` (``survey:object_id``) among
 its extras, from which "Update Reduced Data" fetches its photometry again: reported objects' from
 transients.fyi's API (detections and 5-sigma limits), ZTF's and Rubin's from the Fink broker
-(ZTF's upper limits; Rubin's forced photometry on visits without a detection, as limits).
-Magnitudes are AB. Credit transients.fyi and its sources (https://transients.fyi/data).
+(ZTF's upper limits; Rubin's forced photometry on visits without a detection, as limits) with the
+reported points of the designations they carry (an alert object's TNS name: TNS's, ATLAS's and
+AAVSO's points) from transients.fyi. A report that a ZTF or Rubin object takes over answers a
+redirect to that object: the target's ``tfyi_id`` follows it. Magnitudes are AB. Credit
+transients.fyi and its sources (https://transients.fyi/data).
 """
 
 from __future__ import annotations
@@ -36,7 +39,7 @@ AB_ZP_NJY = 31.4
 TAI_UTC_S = 37
 ZTF_BANDS = {1: "g", 2: "r", 3: "i"}
 ALERT_SURVEYS = ("ztf", "lsst")
-REPORT_SOURCES = ("tns", "cbat")
+REPORT_SOURCES = ("tns", "cbat", "asassn")
 WINDOWS = [("1d", "last night"), ("7d", "7 nights"), ("1M", "a month"), ("3M", "3 months"),
            ("6M", "6 months"), ("1Y", "a year")]  # fmt: skip
 SOURCES = [("all", "every source"), ("ztf", "ZTF"), ("lsst", "Rubin"), ("tns", "TNS"),
@@ -120,7 +123,8 @@ class TransientsFyiDataService(DataService):
     base_url = BASE_URL
     service_notes = (
         "Paste a view's API URL from transients.fyi's Subscribe panel, or a /tonight.json URL. "
-        "Photometry: TNS, ATLAS and CBAT reports from transients.fyi; ZTF and Rubin alerts from Fink."
+        "Photometry: TNS, CBAT, ASAS-SN, ATLAS and AAVSO reports from transients.fyi; ZTF and Rubin "
+        "alerts from Fink."
     )
     app_link = "https://transients.fyi/data"
 
@@ -210,7 +214,28 @@ class TransientsFyiDataService(DataService):
         extra = target.targetextra_set.filter(key="tfyi_id").first()
         if extra is None:
             raise QueryServiceError(f"{target.name} has no tfyi_id extra: not a transients.fyi target")
-        return {"tfyi_id": extra.value}
+        return {"tfyi_id": self.follow(extra)}
+
+    def follow(self, extra) -> str:
+        """A report's id that a ZTF or Rubin object carries now (transients.fyi answers a 307
+        to it, which requests follows): the ``tfyi_id`` extra moves to that object. Unchanged
+        when the site cannot say."""
+        survey, object_id = extra.value.split(":", 1)
+        if survey not in REPORT_SOURCES:
+            return extra.value
+        try:
+            r = requests.get(f"{self.site()}/api/object/{survey}/{object_id}", timeout=TIMEOUT_S)
+        except requests.RequestException:
+            return extra.value
+        if r.status_code != 200:
+            return extra.value
+        row = r.json()
+        now = f"{row['survey']}:{row['object_id']}"
+        if now != extra.value:
+            logger.info("transients.fyi: %s is %s now", extra.value, now)
+            extra.value = now
+            extra.save()
+        return now
 
     # -- photometry -------------------------------------------------------------------------
 
@@ -221,23 +246,30 @@ class TransientsFyiDataService(DataService):
         if survey in REPORT_SOURCES:
             return self.report_photometry(survey, object_id)
         if survey == "ztf":
-            return self.ztf_photometry(object_id)
-        if survey == "lsst":
-            return self.rubin_photometry(object_id)
-        raise QueryServiceError(f"unknown source {survey}")
+            alerts = self.ztf_photometry(object_id)
+        elif survey == "lsst":
+            alerts = self.rubin_photometry(object_id)
+        else:
+            raise QueryServiceError(f"unknown source {survey}")
+        return alerts + self.report_photometry(survey, object_id, missing_ok=True)
 
-    def _get(self, url: str, params: dict) -> list | dict:
+    def _get(self, url: str, params: dict, missing_ok: bool = False) -> list | dict | None:
         try:
             r = requests.get(url, params=params, timeout=TIMEOUT_S)
         except requests.RequestException as e:
             raise QueryServiceError(f"{url} did not answer: {e}") from e
+        if r.status_code == 404 and missing_ok:
+            return None
         if r.status_code != 200:
             raise QueryServiceError(f"{url} answered {r.status_code}")
         return r.json()
 
-    def report_photometry(self, survey: str, object_id: str) -> list[dict]:
+    def report_photometry(self, survey: str, object_id: str, missing_ok: bool = False) -> list[dict]:
+        """transients.fyi's reported points of an object: a report object's own, and those of
+        the designations it carries (an alert object's TNS name), named in ``source_name``.
+        With ``missing_ok``, none when there are none (an alert object that carries none)."""
         url = f"{self.site()}/api/object/{survey}/{object_id}/detections"
-        body = self._get(url, {})
+        body = self._get(url, {}, missing_ok) or {}
         out = []
         for d in body.get("detections", []):
             if d.get("mag") is None:
@@ -246,16 +278,22 @@ class TransientsFyiDataService(DataService):
                 "mjd": d["mjd"], "tai": False, "bandpass": d.get("filter") or d["band"],
                 "brightness": d["mag"], "brightness_error": d.get("mag_err"), "limit": None,
                 "telescope": d.get("telescope") or "", "instrument": d.get("instrument") or "",
-                "source_name": f"{self.name} ({d['origin']})", "source_location": url,
+                "source_name": self.source_name(d), "source_location": url,
             })  # fmt: skip
         for lim in body.get("limits", []):
             out.append({
                 "mjd": lim["mjd"], "tai": False, "bandpass": lim.get("filter") or lim["band"],
                 "brightness": None, "brightness_error": None, "limit": lim["lim_mag"],
                 "telescope": lim.get("telescope") or "", "instrument": lim.get("instrument") or "",
-                "source_name": f"{self.name} ({lim['origin']})", "source_location": url,
+                "source_name": self.source_name(lim), "source_location": url,
             })  # fmt: skip
         return out
+
+    def source_name(self, point: dict) -> str:
+        """ "transients.fyi (atlas)", and the designation a carried point is reported under:
+        "transients.fyi (atlas, tns:2026abc)"."""
+        who = ", ".join(x for x in (point["origin"], point.get("designation")) if x)
+        return f"{self.name} ({who})"
 
     def ztf_photometry(self, object_id: str) -> list[dict]:
         """Fink's ZTF alerts and upper limits (d:tag valid / upperlim); a negative difference

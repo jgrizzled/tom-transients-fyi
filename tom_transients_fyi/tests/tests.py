@@ -146,6 +146,32 @@ class TestTargetsAndPhotometry(TestCase):
         self.assertEqual((lims[0]["limit"], lims[0]["telescope"]), (19.4, "ATLAS-HKO"))
         self.assertEqual(dets[1]["source_name"], "transients.fyi (tns)")
 
+    def test_a_taken_report_follows_the_object_that_carries_it(self):
+        target = Target.objects.create(name="SN 2026pub", type="SIDEREAL", ra=1, dec=2)
+        target.targetextra_set.create(key="tfyi_id", value="tns:2026pub")
+        # transients.fyi answers 307 to the carrier; requests follows it.
+        carrier = {"survey": "ztf", "object_id": "ZTF26abxkuhv", "tns_name": "SN 2026pub"}
+        with patch(GET, fake_get({"/api/object/tns/2026pub": carrier})):
+            self.assertEqual(self.ds.build_query_parameters_from_target(target), {"tfyi_id": "ztf:ZTF26abxkuhv"})
+        self.assertEqual(target.targetextra_set.get(key="tfyi_id").value, "ztf:ZTF26abxkuhv")
+        # Not ours, or the site down: unchanged.
+        other = Target.objects.create(name="AT 2026zzz", type="SIDEREAL", ra=1, dec=2)
+        other.targetextra_set.create(key="tfyi_id", value="tns:2026zzz")
+        with patch(GET, fake_get({})):
+            self.assertEqual(self.ds.build_query_parameters_from_target(other), {"tfyi_id": "tns:2026zzz"})
+
+    def test_an_alert_objects_photometry_adds_its_designations_points(self):
+        body = load("detections.json")
+        for d in body["detections"]:
+            d["designation"] = "tns:2026pub"
+        rows = load("ztf_objects.json")
+        with patch(GET, fake_get({"/api/v1/objects": rows, "/ZTF26abxkuhv/detections": body})):
+            points = self.ds.query_photometry({"tfyi_id": "ztf:ZTF26abxkuhv"})
+        reported = [p for p in points if p["source_name"].startswith("transients.fyi")]
+        self.assertEqual(len(reported), 4)
+        self.assertEqual(reported[1]["source_name"], "transients.fyi (tns, tns:2026pub)")
+        self.assertTrue(all(p["source_name"] == "Fink (ZTF)" for p in points if p not in reported))
+
     def test_ztf_photometry_from_fink(self):
         rows = load("ztf_objects.json")
         get = fake_get({"/api/v1/objects": rows})
