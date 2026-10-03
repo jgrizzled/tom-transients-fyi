@@ -22,6 +22,9 @@ class TestLiveServices(TestCase):
         self.assertTrue(points)
         for p in points:
             self.assertTrue((p["brightness"] is None) != (p["limit"] is None), p)
+            if p["source_name"] != "Fink (ZTF)":  # a carried TNS name's reported points
+                self.assertTrue(p["source_name"].startswith("transients.fyi ("), p)
+                continue
             self.assertEqual((p["telescope"], p["instrument"]), ("P48", "ZTF"))
             self.assertTrue(p["bandpass"].startswith("ZTF-"), p)
 
