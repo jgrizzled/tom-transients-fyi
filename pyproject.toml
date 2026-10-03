@@ -20,8 +20,8 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://transients.fyi/data"
-Repository = "https://github.com/jgrizzled/tom-transients-fyi"
-Issues = "https://github.com/jgrizzled/tom-transients-fyi/issues"
+Repository = "https://github.com/transients-fyi/tom-transients-fyi"
+Issues = "https://github.com/transients-fyi/tom-transients-fyi/issues"
 
 [dependency-groups]
 dev = [
